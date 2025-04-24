@@ -33,10 +33,10 @@ public class User implements UserDetails {
     public User(String string, String name, String email, String encode) {
     }
 
-    // Required for Spring Security
+    // for Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(); // Empty for now, can return roles later
+        return List.of(); // return roles later
     }
 
     @Override
