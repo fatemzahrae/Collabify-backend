@@ -8,10 +8,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,9 +21,12 @@ import java.util.List;
 public class User implements UserDetails {
 
     @Id
-    private String id;
-    private String name;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    private String username;
+    @Column(unique = true, nullable = false)
     private String email;
+    @Column(nullable = false)
     private String password;
 
     @OneToMany(mappedBy = "lead")
@@ -30,7 +35,14 @@ public class User implements UserDetails {
     @ManyToMany(mappedBy = "assignees")
     private List<Task> tasks;
 
-    public User(String string, String name, String email, String encode) {
+    @Column(nullable = false)
+    private boolean enabled = true;
+
+
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
     // for Spring Security
