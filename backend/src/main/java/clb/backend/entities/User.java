@@ -1,5 +1,6 @@
 package clb.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "users")
 @Data
 @NoArgsConstructor
@@ -29,12 +31,13 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    /*
     @OneToMany(mappedBy = "lead")
     private List<Project> projects;
 
     @ManyToMany(mappedBy = "assignees")
     private List<Task> tasks;
-
+*/
     @Column(nullable = false)
     private boolean enabled = true;
 
