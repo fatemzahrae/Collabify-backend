@@ -16,9 +16,10 @@ import java.util.List;
 public class Project {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-    private String name;
+    private String title;
 
     private String description;
 

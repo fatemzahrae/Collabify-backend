@@ -34,7 +34,7 @@ public class SecurityConfiguration {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**", "/api/projects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/users/").permitAll()  // Only allow GET on /users/
                         .requestMatchers("/users/me").authenticated()  // Ensure /users/me requires authentication
                         .anyRequest().authenticated()
