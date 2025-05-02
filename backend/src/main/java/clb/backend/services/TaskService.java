@@ -2,18 +2,13 @@ package clb.backend.services;
 import clb.backend.entities.Task;
 import clb.backend.entities.User;
 import clb.backend.repositories.TaskRepository;
-import clb.backend.repositories.UserRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
-
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserService userService;
-
 
     public TaskService(TaskRepository taskRepository, UserService userService) {
         this.taskRepository = taskRepository;
@@ -25,10 +20,11 @@ public class TaskService {
     }
 
     public Task findTaskById(Long taskId) {
-        return taskRepository.findById(taskId).orElse(null);
+        return taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
     }
 
-    public Task updateTask(Long taskId, Task updatedTask){
+    public Task updateTask(Long taskId, Task updatedTask) {
         return taskRepository.findById(taskId)
                 .map(existingTask -> {
                     existingTask.setTitle(updatedTask.getTitle());
@@ -36,36 +32,34 @@ public class TaskService {
                     existingTask.setStatus(updatedTask.getStatus());
                     return taskRepository.save(existingTask);
                 })
-                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
     }
 
-    public void deleteTask(Long taskId){
+    public void deleteTask(Long taskId) {
         if (!taskRepository.existsById(taskId)) {
             throw new IllegalArgumentException("Task not found with id: " + taskId);
         }
         taskRepository.deleteById(taskId);
     }
 
-
     public List<User> findAssignedUsers(Long taskId) {
         Task task = findTaskById(taskId);
-        return task.getAssignees() ;
+        return task.getAssignees();
     }
 
     public Task addAssignedUser(Long taskId, Long userId) {
         Task task = findTaskById(taskId);
-        List<User> assignees = task.getAssignees();
-        assignees.add(userService.getUserById(userId)) ;
-        task.setAssignees(assignees);
-
+        User user = userService.getUserById(userId);
+        if (!task.getAssignees().contains(user)) {
+            task.getAssignees().add(user);
+        }
         return taskRepository.save(task);
     }
 
     public void deleteAssignedUser(Long taskId, Long userId) {
         Task task = findTaskById(taskId);
-        List<User> assignees = task.getAssignees();
-        assignees.remove(userService.getUserById(userId)) ;
-        task.setAssignees(assignees);
+        User user = userService.getUserById(userId);
+        task.getAssignees().remove(user);
         taskRepository.save(task);
     }
 }
