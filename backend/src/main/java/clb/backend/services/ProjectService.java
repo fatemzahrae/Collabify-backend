@@ -1,20 +1,25 @@
 package clb.backend.services;
 
 import clb.backend.entities.Project;
+import clb.backend.entities.Task;
+import clb.backend.entities.User;
 import clb.backend.repositories.ProjectRepository;
+import clb.backend.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
 
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(ProjectRepository projectRepository, UserRepository userRepository) {
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
+
     }
 
     public Project createProject(Project project) {
@@ -53,6 +58,36 @@ public class ProjectService {
     public Project getProjectByTitle(String title) {
         return projectRepository.findByTitle(title)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found with title: " + title));
+    }
+
+
+    // MEMBER OPERATIONS
+
+    public void addMember(Long projectId, Long userId) {
+        Project project = getProjectById(projectId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+        project.getMembers().add(user);
+        projectRepository.save(project);
+    }
+
+    public void removeMember(Long projectId, Long userId) {
+        Project project = getProjectById(projectId);
+        project.getMembers().removeIf(member -> member.getId().equals(userId));
+        projectRepository.save(project);
+    }
+
+    public List<User> listMembers(Long projectId) {
+        Project project = getProjectById(projectId);
+        return project.getMembers();
+    }
+
+    // TASK OPERATIONS
+
+
+    public List<Task> listTasks(Long projectId) {
+        Project project = getProjectById(projectId);
+        return project.getTasks();
     }
 
 

@@ -17,7 +17,8 @@ import java.util.List;
 public class Task {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     private String title;
 

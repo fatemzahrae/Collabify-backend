@@ -2,6 +2,8 @@ package clb.backend.controllers;
 
 
 import clb.backend.entities.Project;
+import clb.backend.entities.Task;
+import clb.backend.entities.User;
 import clb.backend.services.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class ProjectController {
 
 
     @PostMapping
-    public ResponseEntity<Project> create(@RequestBody Project project) {
+    public ResponseEntity<Project> createProject(@RequestBody Project project) {
         Project createdProject = projectService.createProject(project);
         return ResponseEntity.ok(createdProject);
     }
@@ -56,6 +58,29 @@ public class ProjectController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{projectId}/members/{memberId}")
+    public ResponseEntity<Project> addMember(@PathVariable Long projectId, @PathVariable Long memberId) {
+        projectService.addMember(projectId, memberId);
+        return ResponseEntity.ok(projectService.getProjectById(projectId));
+    }
 
+    @DeleteMapping("/{projectId}/members/{memberId}")
+    public ResponseEntity<Project> deleteMember(@PathVariable Long projectId, @PathVariable Long memberId) {
+        projectService.removeMember(projectId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{projectId}/members/")
+    public ResponseEntity<List<User>> getMembers(@PathVariable Long projectId) {
+        List<User> members =  projectService.listMembers(projectId);
+        return ResponseEntity.ok(members) ;
+    }
+
+
+    @GetMapping("/{projectId}/tasks")
+    public ResponseEntity<List<Task>> ListTasks(@PathVariable Long projectId) {
+       List<Task> tasks = projectService.listTasks(projectId);
+       return ResponseEntity.ok(tasks) ;
+    }
 
 }
