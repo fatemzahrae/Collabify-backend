@@ -16,6 +16,11 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+    }
+
     public List<User> allUsers() {
         List<User> users = new ArrayList<>();
         userRepository.findAll().forEach(users::add);
