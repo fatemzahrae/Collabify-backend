@@ -1,5 +1,6 @@
 package clb.backend.services;
 
+import clb.backend.DTO.UserDataDTO;
 import clb.backend.entities.User;
 import clb.backend.repositories.UserRepository;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,13 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user not found"));
+    public UserDataDTO getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        return new UserDataDTO(user.getId(), user.getUsername(), user.getEmail());
     }
+
 
     public List<User> allUsers() {
         List<User> users = new ArrayList<>();

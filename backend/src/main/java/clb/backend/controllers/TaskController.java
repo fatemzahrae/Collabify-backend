@@ -2,8 +2,10 @@ package clb.backend.controllers;
 
 
 import clb.backend.entities.Task;
+import clb.backend.entities.TaskStatus;
 import clb.backend.entities.User;
 import clb.backend.services.TaskService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +24,7 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody Task task) {
         Task created = taskService.createTask(task);
-        return ResponseEntity.ok(created);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping("/{taskId}")
@@ -43,6 +45,12 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{taskId}/status")
+    public ResponseEntity<Task> updateTaskStatus(@PathVariable Long taskId, @RequestParam TaskStatus status) {
+        Task updated = taskService.updateTaskStatus(taskId, status);
+        return ResponseEntity.ok(updated);
+    }
+
     @GetMapping("/{taskId}/assignees")
     public ResponseEntity<List<User>> getAssignees(@PathVariable Long taskId) {
         List<User> assignees = taskService.findAssignedUsers(taskId);
@@ -61,4 +69,3 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 }
-
