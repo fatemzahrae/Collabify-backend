@@ -1,5 +1,6 @@
 package clb.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,19 +25,23 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
     private String username;
+
     @Column(unique = true, nullable = false)
     private String email;
+
     @Column(nullable = false)
     private String password;
 
-    /*
     @OneToMany(mappedBy = "lead")
+    @JsonIgnore
     private List<Project> projects;
 
     @ManyToMany(mappedBy = "assignees")
+    @JsonIgnore
     private List<Task> tasks;
-*/
+
     @Column(nullable = false)
     private boolean enabled = true;
 

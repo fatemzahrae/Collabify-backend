@@ -4,6 +4,7 @@ import clb.backend.entities.Project;
 import clb.backend.entities.Task;
 import clb.backend.entities.TaskStatus;
 import clb.backend.entities.User;
+import clb.backend.repositories.ProjectRepository;
 import clb.backend.repositories.TaskRepository;
 import clb.backend.repositories.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,11 +17,12 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ProjectRepository projectRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ProjectRepository projectRepository) {
         this.taskRepository = taskRepository;
-
         this.userRepository = userRepository;
+        this.projectRepository = projectRepository;
     }
 
     private void verifyProjectLeader(Project project) {
@@ -31,10 +33,18 @@ public class TaskService {
     }
 
     public Task createTask(Task task) {
-        Project project = task.getProject();
-        verifyProjectLeader(project);
+        if (task.getProject() == null || task.getProject().getId() == null) {
+            throw new IllegalArgumentException("Task must be assigned to a project.");
+        }
+
+        Project project = projectRepository.findById(task.getProject().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Project not found"));
+
+        task.setProject(project);
+
         return taskRepository.save(task);
     }
+
 
     public Task findTaskById(Long taskId) {
         return taskRepository.findById(taskId)
@@ -99,5 +109,9 @@ public class TaskService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         task.getAssignees().remove(user);
         taskRepository.save(task);
+    }
+
+    public List<Task> findAllTasks() {
+        return taskRepository.findAll();
     }
 }

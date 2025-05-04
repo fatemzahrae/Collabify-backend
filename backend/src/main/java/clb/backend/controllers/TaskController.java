@@ -33,6 +33,13 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
+    @GetMapping
+    public ResponseEntity<List<Task>> getAllTasks() {
+        List<Task> tasks = taskService.findAllTasks();
+        return ResponseEntity.ok(tasks);
+    }
+
+
     @PutMapping("/{taskId}")
     public ResponseEntity<Task> updateTask(@PathVariable Long taskId, @RequestBody Task task) {
         Task updated = taskService.updateTask(taskId, task);
