@@ -1,6 +1,8 @@
 package clb.backend.controllers;
 
 
+import clb.backend.DTO.TaskDTO;
+import clb.backend.DTO.UserDataDTO;
 import clb.backend.entities.Task;
 import clb.backend.entities.TaskStatus;
 import clb.backend.entities.User;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -28,22 +31,25 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}")
-    public ResponseEntity<Task> getTask(@PathVariable Long taskId) {
+    public ResponseEntity<TaskDTO> getTask(@PathVariable Long taskId) {
         Task task = taskService.findTaskById(taskId);
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(new TaskDTO(task));
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
+    public ResponseEntity<List<TaskDTO>> getAllTasks() {
         List<Task> tasks = taskService.findAllTasks();
-        return ResponseEntity.ok(tasks);
-    }
+        List<TaskDTO> dtos = tasks.stream()
+                .map(TaskDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);    }
 
 
     @PutMapping("/{taskId}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long taskId, @RequestBody Task task) {
+    public ResponseEntity<TaskDTO> updateTask(@PathVariable Long taskId, @RequestBody Task task) {
         Task updated = taskService.updateTask(taskId, task);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(new TaskDTO(updated));
     }
 
     @DeleteMapping("/{taskId}")
@@ -53,21 +59,25 @@ public class TaskController {
     }
 
     @PatchMapping("/{taskId}/status")
-    public ResponseEntity<Task> updateTaskStatus(@PathVariable Long taskId, @RequestParam TaskStatus status) {
+    public ResponseEntity<TaskDTO> updateTaskStatus(@PathVariable Long taskId, @RequestParam TaskStatus status) {
         Task updated = taskService.updateTaskStatus(taskId, status);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(new TaskDTO(updated));
     }
 
     @GetMapping("/{taskId}/assignees")
-    public ResponseEntity<List<User>> getAssignees(@PathVariable Long taskId) {
+    public ResponseEntity<List<UserDataDTO>> getAssignees(@PathVariable Long taskId) {
         List<User> assignees = taskService.findAssignedUsers(taskId);
-        return ResponseEntity.ok(assignees);
+        List<UserDataDTO> dtos = assignees.stream()
+                .map(UserDataDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping("/{taskId}/assignees/{userId}")
-    public ResponseEntity<Task> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
+    public ResponseEntity<TaskDTO> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
         Task task = taskService.addAssignedUser(taskId, userId);
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(new TaskDTO(task));
     }
 
     @DeleteMapping("/{taskId}/assignees/{userId}")

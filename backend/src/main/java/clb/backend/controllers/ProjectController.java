@@ -1,6 +1,9 @@
 package clb.backend.controllers;
 
 
+import clb.backend.DTO.ProjectDTO;
+import clb.backend.DTO.TaskDTO;
+import clb.backend.DTO.UserDataDTO;
 import clb.backend.entities.Project;
 import clb.backend.entities.Task;
 import clb.backend.entities.User;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/api/projects")
 @RestController
@@ -30,27 +34,33 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Project> getProjectById(@PathVariable Long id) {
+    public ResponseEntity<ProjectDTO> getProjectById(@PathVariable Long id) {
         Project project = projectService.getProjectById(id);
-        return ResponseEntity.ok(project);
+        return ResponseEntity.ok(new ProjectDTO(project));
     }
 
     @GetMapping("/title/{title}")
-    public ResponseEntity<List<Project>> getProjectByTitle(@PathVariable String title) {
+    public ResponseEntity<List<ProjectDTO>> getProjectByTitle(@PathVariable String title) {
         Project project = projectService.getProjectByTitle(title);
-        return ResponseEntity.ok(Collections.singletonList(project));
+        return ResponseEntity.ok(Collections.singletonList(new ProjectDTO(project)));
     }
 
     @GetMapping
-    public ResponseEntity<List<Project>> getProjects() {
+    public ResponseEntity<List<ProjectDTO>> getAllProjects() {
         List<Project> projects = projectService.getAllProjects();
-        return ResponseEntity.ok(projects);
+        List<ProjectDTO> dtos = projects.stream()
+                .map(ProjectDTO::new)
+                .collect(Collectors.toList());
+
+
+        return ResponseEntity.ok(dtos);
     }
 
+
     @PutMapping("/{id}")
-    public ResponseEntity<Project> updateProject(@PathVariable Long id, @RequestBody Project project) {
+    public ResponseEntity<ProjectDTO> updateProject(@PathVariable Long id, @RequestBody Project project) {
         Project updatedProject = projectService.updateProject(id, project);
-        return ResponseEntity.ok(updatedProject);
+        return ResponseEntity.ok(new ProjectDTO(updatedProject));
     }
 
     @DeleteMapping("/{id}")
@@ -60,9 +70,10 @@ public class ProjectController {
     }
 
     @PostMapping("/{projectId}/members/{memberId}")
-    public ResponseEntity<Project> addMember(@PathVariable Long projectId, @PathVariable Long memberId) {
+    public ResponseEntity<ProjectDTO> addMember(@PathVariable Long projectId, @PathVariable Long memberId) {
         projectService.addMember(projectId, memberId);
-        return ResponseEntity.ok(projectService.getProjectById(projectId));
+        Project project = projectService.getProjectById(projectId);
+        return ResponseEntity.ok( new ProjectDTO(project));
     }
 
     @DeleteMapping("/{projectId}/members/{memberId}")
@@ -72,16 +83,24 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/members/")
-    public ResponseEntity<List<User>> getMembers(@PathVariable Long projectId) {
+    public ResponseEntity<List<UserDataDTO>> getMembers(@PathVariable Long projectId) {
         List<User> members =  projectService.listMembers(projectId);
-        return ResponseEntity.ok(members) ;
+        List<UserDataDTO> dtos = members.stream()
+                .map(UserDataDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
 
     @GetMapping("/{projectId}/tasks")
-    public ResponseEntity<List<Task>> ListTasks(@PathVariable Long projectId) {
+    public ResponseEntity<List<TaskDTO>> ListTasks(@PathVariable Long projectId) {
        List<Task> tasks = projectService.listTasks(projectId);
-       return ResponseEntity.ok(tasks) ;
+        List<TaskDTO> dtos = tasks.stream()
+                .map(TaskDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);
     }
 
 }
