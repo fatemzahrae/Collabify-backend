@@ -45,7 +45,6 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-
     public Task findTaskById(Long taskId) {
         return taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
@@ -68,9 +67,9 @@ public class TaskService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        boolean isAssignee = task.getAssignees().stream().anyMatch(u -> u.getId().equals(user.getId()));
-        if (!isAssignee) {
-            throw new AccessDeniedException("Only assignees can update the task status.");
+        // Check if the current user is the assignee
+        if (task.getAssignee() == null || !task.getAssignee().getId().equals(user.getId())) {
+            throw new AccessDeniedException("Only the assignee can update the task status.");
         }
 
         task.setStatus(newStatus);
@@ -84,34 +83,41 @@ public class TaskService {
         taskRepository.deleteById(taskId);
     }
 
-    public List<User> findAssignedUsers(Long taskId) {
+    public User findAssignedUser(Long taskId) {
         Task task = findTaskById(taskId);
-        return task.getAssignees();
+        return task.getAssignee();
     }
 
-    public Task addAssignedUser(Long taskId, Long userId) {
+    public Task assignUser(Long taskId, Long userId) {
         Task task = findTaskById(taskId);
         verifyProjectLeader(task.getProject());
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if (!task.getAssignees().contains(user)) {
-            task.getAssignees().add(user);
-        }
+        
+        task.setAssignee(user);
         return taskRepository.save(task);
     }
 
-    public void deleteAssignedUser(Long taskId, Long userId) {
+    public Task unassignUser(Long taskId) {
         Task task = findTaskById(taskId);
         verifyProjectLeader(task.getProject());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        task.getAssignees().remove(user);
-        taskRepository.save(task);
+        task.setAssignee(null);
+        return taskRepository.save(task);
     }
 
     public List<Task> findAllTasks() {
         return taskRepository.findAll();
+    }
+
+    public List<Task> findTasksByAssignee(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return taskRepository.findByAssignee(user);
+    }
+
+    public List<Task> findUnassignedTasks() {
+        return taskRepository.findByAssigneeIsNull();
     }
 }

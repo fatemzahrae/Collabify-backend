@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Data
@@ -37,11 +35,7 @@ public class Task {
     @JoinColumn(name = "project_id")
     private Project project;
 
-    @ManyToMany
-    @JoinTable(
-            name = "task_assignees",
-            joinColumns = @JoinColumn(name = "task_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<User> assignees  = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "assignee_id")
+    private User assignee;
 }

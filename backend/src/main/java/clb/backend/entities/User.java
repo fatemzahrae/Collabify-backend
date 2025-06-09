@@ -35,7 +35,7 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "lead")
     private List<Project> projects;
 
-    @ManyToMany(mappedBy = "assignees")
+    @OneToMany(mappedBy = "assignee")
     private List<Task> tasks;
 
     @Column(nullable = false)

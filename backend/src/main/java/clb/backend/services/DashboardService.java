@@ -28,7 +28,7 @@ public class DashboardService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        List<TaskDTO> assignedTasks = taskRepository.findByAssigneesContains(user)
+        List<TaskDTO> assignedTasks = taskRepository.findByAssignee(user)
                 .stream().map(TaskDTO::new).toList();
 
         List<ProjectDTO> userProjects = projectRepository.findByMembersContaining(user)

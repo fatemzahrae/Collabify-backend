@@ -1,6 +1,5 @@
 package clb.backend.controllers;
 
-
 import clb.backend.DTO.TaskDTO;
 import clb.backend.DTO.UserDataDTO;
 import clb.backend.entities.Task;
@@ -43,8 +42,8 @@ public class TaskController {
                 .map(TaskDTO::new)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(dtos);    }
-
+        return ResponseEntity.ok(dtos);
+    }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskDTO> updateTask(@PathVariable Long taskId, @RequestBody Task task) {
@@ -64,25 +63,42 @@ public class TaskController {
         return ResponseEntity.ok(new TaskDTO(updated));
     }
 
-    @GetMapping("/{taskId}/assignees")
-    public ResponseEntity<List<UserDataDTO>> getAssignees(@PathVariable Long taskId) {
-        List<User> assignees = taskService.findAssignedUsers(taskId);
-        List<UserDataDTO> dtos = assignees.stream()
-                .map(UserDataDTO::new)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(dtos);
+    @GetMapping("/{taskId}/assignee")
+    public ResponseEntity<UserDataDTO> getAssignee(@PathVariable Long taskId) {
+        User assignee = taskService.findAssignedUser(taskId);
+        if (assignee == null) {
+            return ResponseEntity.ok(null);
+        }
+        return ResponseEntity.ok(new UserDataDTO(assignee));
     }
 
-    @PostMapping("/{taskId}/assignees/{userId}")
+    @PostMapping("/{taskId}/assignee/{userId}")
     public ResponseEntity<TaskDTO> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
-        Task task = taskService.addAssignedUser(taskId, userId);
+        Task task = taskService.assignUser(taskId, userId);
         return ResponseEntity.ok(new TaskDTO(task));
     }
 
-    @DeleteMapping("/{taskId}/assignees/{userId}")
-    public ResponseEntity<Void> unassignUserFromTask(@PathVariable Long taskId, @PathVariable Long userId) {
-        taskService.deleteAssignedUser(taskId, userId);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{taskId}/assignee")
+    public ResponseEntity<TaskDTO> unassignUserFromTask(@PathVariable Long taskId) {
+        Task task = taskService.unassignUser(taskId);
+        return ResponseEntity.ok(new TaskDTO(task));
+    }
+
+    @GetMapping("/assignee/{userId}")
+    public ResponseEntity<List<TaskDTO>> getTasksByAssignee(@PathVariable Long userId) {
+        List<Task> tasks = taskService.findTasksByAssignee(userId);
+        List<TaskDTO> dtos = tasks.stream()
+                .map(TaskDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/unassigned")
+    public ResponseEntity<List<TaskDTO>> getUnassignedTasks() {
+        List<Task> tasks = taskService.findUnassignedTasks();
+        List<TaskDTO> dtos = tasks.stream()
+                .map(TaskDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 }
