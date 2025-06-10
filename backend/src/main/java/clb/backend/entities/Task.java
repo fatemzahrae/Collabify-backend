@@ -1,6 +1,5 @@
 package clb.backend.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,8 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 @Entity
 @Data
@@ -29,21 +29,19 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority; 
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
-    @JsonIgnore
     private Project project;
 
-    @ManyToMany
-    @JoinTable(
-            name = "task_assignees",
-            joinColumns = @JoinColumn(name = "task_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    @JsonIgnore
-    private List<User> assignees  = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assignee_id") 
+    private User assignee;
+
 }

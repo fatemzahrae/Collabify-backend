@@ -2,7 +2,6 @@ package clb.backend.controllers;
 
 import clb.backend.DTO.LoginUserDto;
 import clb.backend.DTO.RegisterUserDto;
-import clb.backend.DTO.VerifyUserDto;
 import clb.backend.entities.User;
 import clb.backend.responses.LoginResponse;
 import clb.backend.services.AuthenticationService;

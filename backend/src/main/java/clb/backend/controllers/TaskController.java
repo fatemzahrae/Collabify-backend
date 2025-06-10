@@ -59,20 +59,20 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}/assignees")
-    public ResponseEntity<List<User>> getAssignees(@PathVariable Long taskId) {
-        List<User> assignees = taskService.findAssignedUsers(taskId);
-        return ResponseEntity.ok(assignees);
+    public ResponseEntity<User> getAssignees(@PathVariable Long taskId) {
+        User assignee = taskService.findAssignedUser(taskId);
+        return ResponseEntity.ok(assignee);
     }
 
     @PostMapping("/{taskId}/assignees/{userId}")
     public ResponseEntity<Task> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
-        Task task = taskService.addAssignedUser(taskId, userId);
+        Task task = taskService.assignUser(taskId, userId);
         return ResponseEntity.ok(task);
     }
 
     @DeleteMapping("/{taskId}/assignees/{userId}")
     public ResponseEntity<Void> unassignUserFromTask(@PathVariable Long taskId, @PathVariable Long userId) {
-        taskService.deleteAssignedUser(taskId, userId);
+        taskService.unassignUser(taskId);
         return ResponseEntity.noContent().build();
     }
 }
