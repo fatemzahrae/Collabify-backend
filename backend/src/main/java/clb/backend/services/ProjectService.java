@@ -167,6 +167,16 @@ public class ProjectService {
         return userMapper.toDTOList(project.getMembers());
     }
 
+    public List<Project> getUserProjects() {
+    String email = SecurityContextHolder.getContext().getAuthentication().getName();
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+    
+    // Get all projects where the user is either a member or the lead
+    return projectRepository.findByMembersContainingOrLead(user, user);
+}
+
+
     // TASK OPERATIONS
 
     public List<TaskDTO> listTasks(Long projectId) {

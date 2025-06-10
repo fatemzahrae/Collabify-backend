@@ -38,6 +38,16 @@ public class ProjectController {
         return ResponseEntity.ok(project);
     }
 
+    @GetMapping("/my-projects")
+    public ResponseEntity<List<Project>> getUserProjects() {
+        try {
+            List<Project> userProjects = projectService.getUserProjects();
+            return ResponseEntity.ok(userProjects);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @GetMapping("/title/{title}")
     public ResponseEntity<ProjectDTO> getProjectByTitle(@PathVariable String title) {
         ProjectDTO project = projectService.getProjectByTitle(title);
