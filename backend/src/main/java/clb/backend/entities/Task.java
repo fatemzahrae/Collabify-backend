@@ -26,11 +26,9 @@ public class Task {
 
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    private TaskStatus status;
+    private String status;
 
-    @Enumerated(EnumType.STRING)
-    private TaskPriority priority; 
+    private String priority; 
 
     private LocalDateTime createdAt;
 

@@ -1,7 +1,5 @@
 package clb.backend.controllers;
 
-
-import clb.backend.entities.TaskStatus;
 import clb.backend.services.TaskService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import clb.backend.DTO.CreateTaskRequest;
 import clb.backend.DTO.TaskDTO;
 import clb.backend.DTO.UserDataDTO;
+
 import java.util.List;
 
 @RestController
@@ -53,7 +52,7 @@ public class TaskController {
     }
 
     @PatchMapping("/{taskId}/status")
-    public ResponseEntity<TaskDTO> updateTaskStatus(@PathVariable Long taskId, @RequestParam TaskStatus status) {
+    public ResponseEntity<TaskDTO> updateTaskStatus(@PathVariable Long taskId, @RequestParam String status) {
         TaskDTO updated = taskService.updateTaskStatus(taskId, status);
         return ResponseEntity.ok(updated);
     }

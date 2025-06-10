@@ -2,8 +2,6 @@ package clb.backend.services;
 
 import clb.backend.entities.Project;
 import clb.backend.entities.Task;
-import clb.backend.entities.TaskPriority;
-import clb.backend.entities.TaskStatus;
 import clb.backend.entities.User;
 import clb.backend.mappers.TaskMapper;
 import clb.backend.repositories.ProjectRepository;
@@ -19,7 +17,6 @@ import clb.backend.DTO.TaskDTO;
 import clb.backend.DTO.UserDataDTO;
 import clb.backend.mappers.UserMapper;
 import java.time.LocalDateTime;
-
 
 @Service
 public class TaskService {
@@ -57,19 +54,12 @@ public class TaskService {
         Task task = taskMapper.toEntity(request);
         task.setProject(project);
 
-        // Set assignee if provided
         if (request.getAssigneeId() != null) {
             User assignee = userRepository.findById(request.getAssigneeId())
                     .orElseThrow(() -> new IllegalArgumentException("Assignee not found"));
             task.setAssignee(assignee);
         }
 
-        // Set default priority if not provided
-        if (task.getPriority() == null) {
-            task.setPriority(TaskPriority.MEDIUM);
-        }
-
-        // Set creation time
         task.setCreatedAt(LocalDateTime.now());
         task.setUpdatedAt(LocalDateTime.now());
 
@@ -86,18 +76,16 @@ public class TaskService {
     public TaskDTO updateTask(Long taskId, CreateTaskRequest request) {
         Task existingTask = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        
+
         verifyProjectLeader(existingTask.getProject());
 
         taskMapper.updateEntityFromRequest(existingTask, request);
 
-        // Update assignee if provided
         if (request.getAssigneeId() != null) {
             User assignee = userRepository.findById(request.getAssigneeId())
                     .orElseThrow(() -> new IllegalArgumentException("Assignee not found"));
             existingTask.setAssignee(assignee);
         } else if (request.getAssigneeId() == null) {
-            // If assigneeId is explicitly null in request, remove assignee
             existingTask.setAssignee(null);
         }
 
@@ -107,7 +95,7 @@ public class TaskService {
         return taskMapper.toDTO(savedTask);
     }
 
-    public TaskDTO updateTaskStatus(Long taskId, TaskStatus newStatus) {
+    public TaskDTO updateTaskStatus(Long taskId, String newStatus) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
@@ -122,7 +110,7 @@ public class TaskService {
 
         task.setStatus(newStatus);
         task.setUpdatedAt(LocalDateTime.now());
-        
+
         Task savedTask = taskRepository.save(task);
         return taskMapper.toDTO(savedTask);
     }
@@ -130,7 +118,7 @@ public class TaskService {
     public void deleteTask(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        
+
         verifyProjectLeader(task.getProject());
         taskRepository.deleteById(taskId);
     }
@@ -138,18 +126,18 @@ public class TaskService {
     public UserDataDTO findAssignedUser(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        
+
         if (task.getAssignee() == null) {
             return null;
         }
-        
+
         return userMapper.toDTO(task.getAssignee());
     }
 
     public TaskDTO assignUser(Long taskId, Long userId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        
+
         verifyProjectLeader(task.getProject());
 
         User user = userRepository.findById(userId)
@@ -157,7 +145,7 @@ public class TaskService {
 
         task.setAssignee(user);
         task.setUpdatedAt(LocalDateTime.now());
-        
+
         Task savedTask = taskRepository.save(task);
         return taskMapper.toDTO(savedTask);
     }
@@ -165,12 +153,12 @@ public class TaskService {
     public TaskDTO unassignUser(Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        
+
         verifyProjectLeader(task.getProject());
 
         task.setAssignee(null);
         task.setUpdatedAt(LocalDateTime.now());
-        
+
         Task savedTask = taskRepository.save(task);
         return taskMapper.toDTO(savedTask);
     }
