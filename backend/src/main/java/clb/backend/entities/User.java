@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -35,8 +34,12 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "lead")
     private List<Project> projects;
 
+
+    @JsonIgnore
     @OneToMany(mappedBy = "assignee")
-    private List<Task> tasks;
+    private List<Task> assignedTasks;
+
+
 
     @Column(nullable = false)
     private boolean enabled = true;

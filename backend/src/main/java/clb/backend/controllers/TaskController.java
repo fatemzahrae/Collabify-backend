@@ -63,42 +63,22 @@ public class TaskController {
         return ResponseEntity.ok(new TaskDTO(updated));
     }
 
-    @GetMapping("/{taskId}/assignee")
-    public ResponseEntity<UserDataDTO> getAssignee(@PathVariable Long taskId) {
+    @GetMapping("/{taskId}/assignees")
+    public ResponseEntity<User> getAssignees(@PathVariable Long taskId) {
         User assignee = taskService.findAssignedUser(taskId);
-        if (assignee == null) {
-            return ResponseEntity.ok(null);
-        }
-        return ResponseEntity.ok(new UserDataDTO(assignee));
+        return ResponseEntity.ok(assignee);
     }
 
-    @PostMapping("/{taskId}/assignee/{userId}")
-    public ResponseEntity<TaskDTO> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
+    @PostMapping("/{taskId}/assignees/{userId}")
+    public ResponseEntity<Task> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
         Task task = taskService.assignUser(taskId, userId);
-        return ResponseEntity.ok(new TaskDTO(task));
+        return ResponseEntity.ok(task);
     }
 
-    @DeleteMapping("/{taskId}/assignee")
-    public ResponseEntity<TaskDTO> unassignUserFromTask(@PathVariable Long taskId) {
-        Task task = taskService.unassignUser(taskId);
-        return ResponseEntity.ok(new TaskDTO(task));
-    }
+    @DeleteMapping("/{taskId}/assignees/{userId}")
+    public ResponseEntity<Void> unassignUserFromTask(@PathVariable Long taskId, @PathVariable Long userId) {
+        taskService.unassignUser(taskId);
+        return ResponseEntity.noContent().build();
 
-    @GetMapping("/assignee/{userId}")
-    public ResponseEntity<List<TaskDTO>> getTasksByAssignee(@PathVariable Long userId) {
-        List<Task> tasks = taskService.findTasksByAssignee(userId);
-        List<TaskDTO> dtos = tasks.stream()
-                .map(TaskDTO::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    @GetMapping("/unassigned")
-    public ResponseEntity<List<TaskDTO>> getUnassignedTasks() {
-        List<Task> tasks = taskService.findUnassignedTasks();
-        List<TaskDTO> dtos = tasks.stream()
-                .map(TaskDTO::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
     }
 }

@@ -2,6 +2,7 @@ package clb.backend.services;
 
 import clb.backend.entities.Project;
 import clb.backend.entities.Task;
+import clb.backend.entities.TaskPriority;
 import clb.backend.entities.TaskStatus;
 import clb.backend.entities.User;
 import clb.backend.repositories.ProjectRepository;
@@ -10,6 +11,7 @@ import clb.backend.repositories.UserRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -42,6 +44,9 @@ public class TaskService {
 
         task.setProject(project);
 
+        if (task.getPriority() == null) {
+        task.setPriority(TaskPriority.MEDIUM);
+    }
         return taskRepository.save(task);
     }
 
@@ -57,6 +62,9 @@ public class TaskService {
         existingTask.setTitle(updatedTask.getTitle());
         existingTask.setDescription(updatedTask.getDescription());
         existingTask.setStatus(updatedTask.getStatus());
+        existingTask.setAssignee(updatedTask.getAssignee());
+        existingTask.setPriority(updatedTask.getPriority());
+
         return taskRepository.save(existingTask);
     }
 
@@ -67,8 +75,9 @@ public class TaskService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Check if the current user is the assignee
-        if (task.getAssignee() == null || !task.getAssignee().getId().equals(user.getId())) {
+        boolean isAssignee = task.getAssignee() != null && task.getAssignee().getId().equals(user.getId());
+        if (!isAssignee) {
+
             throw new AccessDeniedException("Only the assignee can update the task status.");
         }
 
@@ -94,7 +103,9 @@ public class TaskService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
+
+
         task.setAssignee(user);
         return taskRepository.save(task);
     }
@@ -111,13 +122,4 @@ public class TaskService {
         return taskRepository.findAll();
     }
 
-    public List<Task> findTasksByAssignee(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return taskRepository.findByAssignee(user);
-    }
-
-    public List<Task> findUnassignedTasks() {
-        return taskRepository.findByAssigneeIsNull();
-    }
 }
