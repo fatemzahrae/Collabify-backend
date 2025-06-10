@@ -25,7 +25,9 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String username;
+    private String firstname;
+    private String lastname;
+    private String role;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -46,8 +48,10 @@ public class User implements UserDetails {
     private boolean enabled = true;
 
 
-    public User(String username, String email, String password) {
-        this.username = username;
+    public User(String firstname, String lastname, String role, String email, String password) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.role = role;
         this.email = email;
         this.password = password;
     }

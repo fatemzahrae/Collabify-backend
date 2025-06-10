@@ -21,7 +21,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
 
-        return new UserDataDTO(user.getId(), user.getUsername(), user.getEmail());
+        return new UserDataDTO(user.getId(), user.getFirstname(), user.getLastname(), user.getEmail(), user.getRole());
     }
 
 
