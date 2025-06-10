@@ -3,8 +3,7 @@ package clb.backend.DTO;
 import lombok.Data;
 
 @Data
-
-public class LoginUserDto {
+public class VerifyUserDto {
     private String email;
-    private String password;
+    private String verificationCode;
 }

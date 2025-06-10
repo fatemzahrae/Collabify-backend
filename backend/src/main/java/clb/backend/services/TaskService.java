@@ -77,7 +77,6 @@ public class TaskService {
 
         boolean isAssignee = task.getAssignee() != null && task.getAssignee().getId().equals(user.getId());
         if (!isAssignee) {
-
             throw new AccessDeniedException("Only the assignee can update the task status.");
         }
 
@@ -104,8 +103,6 @@ public class TaskService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-
-
         task.setAssignee(user);
         return taskRepository.save(task);
     }
@@ -121,5 +118,4 @@ public class TaskService {
     public List<Task> findAllTasks() {
         return taskRepository.findAll();
     }
-
 }
