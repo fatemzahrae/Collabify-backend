@@ -5,6 +5,7 @@ import clb.backend.entities.Task;
 import clb.backend.entities.TaskPriority;
 import clb.backend.entities.TaskStatus;
 import clb.backend.entities.User;
+import clb.backend.mappers.TaskMapper;
 import clb.backend.repositories.ProjectRepository;
 import clb.backend.repositories.TaskRepository;
 import clb.backend.repositories.UserRepository;
@@ -13,6 +14,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import clb.backend.DTO.CreateTaskRequest;
+import clb.backend.DTO.TaskDTO;
+import clb.backend.DTO.UserDataDTO;
+import clb.backend.mappers.UserMapper;
+import java.time.LocalDateTime;
+
 
 @Service
 public class TaskService {
@@ -20,11 +27,16 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
+    private final TaskMapper taskMapper;
+    private final UserMapper userMapper;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, ProjectRepository projectRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, 
+                      ProjectRepository projectRepository, TaskMapper taskMapper, UserMapper userMapper) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.projectRepository = projectRepository;
+        this.taskMapper = taskMapper;
+        this.userMapper = userMapper;
     }
 
     private void verifyProjectLeader(Project project) {
@@ -34,42 +46,70 @@ public class TaskService {
         }
     }
 
-    public Task createTask(Task task) {
-        if (task.getProject() == null || task.getProject().getId() == null) {
+    public TaskDTO createTask(CreateTaskRequest request) {
+        if (request.getProjectId() == null) {
             throw new IllegalArgumentException("Task must be assigned to a project.");
         }
 
-        Project project = projectRepository.findById(task.getProject().getId())
+        Project project = projectRepository.findById(request.getProjectId())
                 .orElseThrow(() -> new IllegalArgumentException("Project not found"));
 
+        Task task = taskMapper.toEntity(request);
         task.setProject(project);
 
+        // Set assignee if provided
+        if (request.getAssigneeId() != null) {
+            User assignee = userRepository.findById(request.getAssigneeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Assignee not found"));
+            task.setAssignee(assignee);
+        }
+
+        // Set default priority if not provided
         if (task.getPriority() == null) {
-        task.setPriority(TaskPriority.MEDIUM);
-    }
-        return taskRepository.save(task);
+            task.setPriority(TaskPriority.MEDIUM);
+        }
+
+        // Set creation time
+        task.setCreatedAt(LocalDateTime.now());
+        task.setUpdatedAt(LocalDateTime.now());
+
+        Task savedTask = taskRepository.save(task);
+        return taskMapper.toDTO(savedTask);
     }
 
-    public Task findTaskById(Long taskId) {
-        return taskRepository.findById(taskId)
+    public TaskDTO findTaskById(Long taskId) {
+        Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + taskId));
+        return taskMapper.toDTO(task);
     }
 
-    public Task updateTask(Long taskId, Task updatedTask) {
-        Task existingTask = findTaskById(taskId);
+    public TaskDTO updateTask(Long taskId, CreateTaskRequest request) {
+        Task existingTask = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        
         verifyProjectLeader(existingTask.getProject());
 
-        existingTask.setTitle(updatedTask.getTitle());
-        existingTask.setDescription(updatedTask.getDescription());
-        existingTask.setStatus(updatedTask.getStatus());
-        existingTask.setAssignee(updatedTask.getAssignee());
-        existingTask.setPriority(updatedTask.getPriority());
+        taskMapper.updateEntityFromRequest(existingTask, request);
 
-        return taskRepository.save(existingTask);
+        // Update assignee if provided
+        if (request.getAssigneeId() != null) {
+            User assignee = userRepository.findById(request.getAssigneeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Assignee not found"));
+            existingTask.setAssignee(assignee);
+        } else if (request.getAssigneeId() == null) {
+            // If assigneeId is explicitly null in request, remove assignee
+            existingTask.setAssignee(null);
+        }
+
+        existingTask.setUpdatedAt(LocalDateTime.now());
+
+        Task savedTask = taskRepository.save(existingTask);
+        return taskMapper.toDTO(savedTask);
     }
 
-    public Task updateTaskStatus(Long taskId, TaskStatus newStatus) {
-        Task task = findTaskById(taskId);
+    public TaskDTO updateTaskStatus(Long taskId, TaskStatus newStatus) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
@@ -81,41 +121,62 @@ public class TaskService {
         }
 
         task.setStatus(newStatus);
-        return taskRepository.save(task);
+        task.setUpdatedAt(LocalDateTime.now());
+        
+        Task savedTask = taskRepository.save(task);
+        return taskMapper.toDTO(savedTask);
     }
 
     public void deleteTask(Long taskId) {
-        Task task = findTaskById(taskId);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        
         verifyProjectLeader(task.getProject());
-
         taskRepository.deleteById(taskId);
     }
 
-    public User findAssignedUser(Long taskId) {
-        Task task = findTaskById(taskId);
-        return task.getAssignee();
+    public UserDataDTO findAssignedUser(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        
+        if (task.getAssignee() == null) {
+            return null;
+        }
+        
+        return userMapper.toDTO(task.getAssignee());
     }
 
-    public Task assignUser(Long taskId, Long userId) {
-        Task task = findTaskById(taskId);
+    public TaskDTO assignUser(Long taskId, Long userId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        
         verifyProjectLeader(task.getProject());
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         task.setAssignee(user);
-        return taskRepository.save(task);
+        task.setUpdatedAt(LocalDateTime.now());
+        
+        Task savedTask = taskRepository.save(task);
+        return taskMapper.toDTO(savedTask);
     }
 
-    public Task unassignUser(Long taskId) {
-        Task task = findTaskById(taskId);
+    public TaskDTO unassignUser(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        
         verifyProjectLeader(task.getProject());
 
         task.setAssignee(null);
-        return taskRepository.save(task);
+        task.setUpdatedAt(LocalDateTime.now());
+        
+        Task savedTask = taskRepository.save(task);
+        return taskMapper.toDTO(savedTask);
     }
 
-    public List<Task> findAllTasks() {
-        return taskRepository.findAll();
+    public List<TaskDTO> findAllTasks() {
+        List<Task> tasks = taskRepository.findAll();
+        return taskMapper.toDTOList(tasks);
     }
 }

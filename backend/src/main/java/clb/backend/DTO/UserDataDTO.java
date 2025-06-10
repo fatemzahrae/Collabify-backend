@@ -4,6 +4,7 @@ import clb.backend.entities.User;
 import lombok.Data;
 
 @Data
+
 public class UserDataDTO extends User {
     private Long id;
     private String username;
