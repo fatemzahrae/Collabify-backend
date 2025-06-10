@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequestMapping("/api/users")
 @RestController
@@ -31,10 +32,13 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<User>> allUsers() {
+    public ResponseEntity<List<UserDataDTO>> allUsers() {
         List <User> users = userService.allUsers();
-        return ResponseEntity.ok(users);
-    }
+        List<UserDataDTO> dtos = users.stream()
+                .map(UserDataDTO::new)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(dtos);       }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDataDTO> getUser(@PathVariable Long userId) {
