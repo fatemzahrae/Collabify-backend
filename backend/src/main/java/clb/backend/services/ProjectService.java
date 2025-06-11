@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -167,18 +168,25 @@ public class ProjectService {
         return userMapper.toDTOList(project.getMembers());
     }
 
-    public List<Project> getUserProjects() {
+    /*public List<Project> getUserProjects() {
     String email = SecurityContextHolder.getContext().getAuthentication().getName();
     User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
     
     // Get all projects where the user is either a member or the lead
-    return projectRepository.findByMembersContainingOrLead(user, user);
-}
+    return projectRepository.findByMembersContainingOrLead(user, user);}*/
+public List<Long> getProjectIdsByUserId(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        List<Project> projects = projectRepository.findByUserIsMemberOrLead(user);
+        return projects.stream()
+                .map(Project::getId)
+                .collect(Collectors.toList());
+    }
 
 
     // TASK OPERATIONS
-
     public List<TaskDTO> listTasks(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));

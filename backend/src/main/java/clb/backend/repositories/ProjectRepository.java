@@ -1,5 +1,6 @@
 package clb.backend.repositories;
 
+import clb.backend.DTO.ProjectDTO;
 import clb.backend.entities.Project;
 import clb.backend.entities.User;
 
@@ -12,8 +13,9 @@ import java.util.Optional;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     Optional<Project> findByTitle(String title);
-    @Query("SELECT p FROM Project p WHERE :user MEMBER OF p.members OR p.lead = :lead")
-    List<Project> findByMembersContainingOrLead(@Param("user") User user, @Param("lead")User lead);
+    @Query("SELECT p FROM Project p WHERE :user MEMBER OF p.members OR p.lead = :user")
+    List<Project> findByUserIsMemberOrLead(@Param("user") User user);
+
 
 }
 
