@@ -54,15 +54,8 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:3000",  
-            "http://localhost:3001", 
-            "https://dns.com",        
-            "http://localhost:8080"  
-        ));
-        
+        configuration.setAllowedOriginPatterns(List.of("*")); 
         configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
-        
         configuration.setAllowedHeaders(List.of(
             "Authorization", 
             "Content-Type", 
@@ -72,12 +65,12 @@ public class SecurityConfiguration {
             "Access-Control-Request-Method",
             "Access-Control-Request-Headers"
         ));
-        
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false); 
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);  // Changed to /** to cover all paths
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-}
+
+    }
